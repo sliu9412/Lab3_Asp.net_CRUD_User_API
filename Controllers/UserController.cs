@@ -26,18 +26,30 @@ namespace lab3.Controllers
             return Ok(DbContext.UserEntityMapping.ToList());
         }
 
-        // Get User by id
-        [HttpGet("{UserId}")]
-        public IActionResult GetUserByUserId(String UserId)
+        // Check whether the user with the id is existing 
+        private (bool isExist, UserEntity user) IsUserExist(String UserId)
         {
             var queryResult = DbContext.UserEntityMapping.Where(item => item.id == UserId);
             if (queryResult.Count() > 0)
             {
-                return Ok(queryResult);
+                return (true, queryResult.First());
             }
-            return BadRequest("No user for this id!");
+            return (false, new UserEntity());
         }
 
+        // Get User by id
+        [HttpGet("{UserId}")]
+        public IActionResult GetUserByUserId(String UserId)
+        {
+            var isUserExist = IsUserExist(UserId);
+            if (isUserExist.isExist)
+            {
+                return Ok(new List<UserEntity>() { isUserExist.user });
+            }
+            return BadRequest("No user with this id!");
+        }
+
+        // Add New User
         [HttpPost]
         public IActionResult AddNewUser(UserEntity userEntity)
         {
@@ -51,6 +63,22 @@ namespace lab3.Controllers
             DbContext.Add(newUser);
             DbContext.SaveChanges();
             return Ok(newUser);
+        }
+
+        // Update existing user by id
+        [HttpPut]
+        public IActionResult UpdateUserByUserId(UserEntity userEntity)
+        {
+            var isUserExist = IsUserExist(userEntity.id);
+            if (isUserExist.isExist)
+            {
+                isUserExist.user.name = userEntity.name;
+                isUserExist.user.email = userEntity.email;
+                isUserExist.user.status = userEntity.status;
+                DbContext.SaveChanges();
+                return Ok(userEntity);
+            }
+            return BadRequest("The update user's id is invalid!");
         }
     }
 }
