@@ -19,10 +19,23 @@ namespace lab3.Controllers
             this.DbContext = DbContext;
         }
 
+        // Get All Users
         [HttpGet]
         public IActionResult GetUsers()
         {
             return Ok(DbContext.UserEntityMapping.ToList());
+        }
+
+        // Get User by id
+        [HttpGet("{UserId}")]
+        public IActionResult GetUserByUserId(String UserId)
+        {
+            var queryResult = DbContext.UserEntityMapping.Where(item => item.id == UserId);
+            if (queryResult.Count() > 0)
+            {
+                return Ok(queryResult);
+            }
+            return BadRequest("No user for this id!");
         }
 
         [HttpPost]
